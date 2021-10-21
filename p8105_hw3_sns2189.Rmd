@@ -33,40 +33,65 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ## Problem 1
 
-```{r}
-nrow(instacart)
-ncol(instacart)
-names(instacart)
-```
+__Describing the `instacart` dataset:__
 
-How many aisles are there, and which aisles are the most items ordered from?
+`instacart` is a dataset with `r nrow(instacart)` rows and `r ncol(instacart)` columns. Each row represents a single product that was part of an order via Instacart. Some key variables that we use in our exploration below are 
+
+* `product_name` (e.g., "`r pull(instacart, product_name)[1]`", "`r pull(instacart, product_name)[2]`", or `"r pull(instacart, product_name)[3]`"), 
+
+* `aisle` (e.g., "`r pull(instacart, aisle)[1]`", "`r pull(instacart, aisle)[2]`", or "`r pull(instacart, aisle)[3]`"), and
+
+* `order_hour_of_day`, which notes the the hour of day from 0-23 during which the order was placed.
+
+__Counting aisles:__
 
 ```{r}
 instacart %>% 
   group_by(aisle) %>% 
   summarize(aisle_ct = n()) %>% 
   nrow()
+```
 
+There are 134 aisles in the dataset.
+
+__Determining popular aisles:__
+
+```{r}
 instacart %>% 
   group_by(aisle) %>% 
   summarize(aisle_ct = n()) %>% 
   arrange(desc(aisle_ct)) %>% 
-  top_n(5)
+  top_n(5) %>% 
+  knitr::kable()
 ```
 
-Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+It makes sense to me that fruits and vegetables are ordered often. There are a wide variety of foods in these aisles, they represent important food groups, and fruits and vegetables also go bad quicker than other items which calls for more frequent orders. Packaged cheese is also a common product and can run out quickly. Especially because cheese is a common ingredient for breakfast, lunch, and dinner recipes. I'm a little surprised that yogurt is also on this top 5 list,, but if each small yogurt container counts as 1 item, people may buy many units each time they order, which add up quickly.
 
-```{r}
+__Making a plot showing the number of items ordered in each aisle:___
+
+```{r fig.asp = 1}
+
 instacart %>% 
   group_by(aisle) %>% 
   summarize(aisle_ct = n()) %>% 
   filter(aisle_ct >= 10000) %>% 
   ggplot(aes(x = fct_reorder(aisle, aisle_ct), y = aisle_ct, fill = aisle_ct)) +
   geom_col() +
-  coord_flip()
+  coord_flip() +
+  scale_y_continuous(
+    breaks = c(25000, 50000, 75000, 100000, 125000, 150000)
+  ) + 
+  labs(
+    title = "Instacart orders",
+    x = "Aisle",
+    y = "Number of products ordered"
+  ) +
+  theme(legend.position = "none")
 ```
 
-Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+A couple things that surprise me about this plot are the amount of orders from the water aisle and the lack of orders from the butter aisle. The high volume of water orders show that customers may not favor tap water or water filters. Many may instead enjoy bottled or sparkling water more than I thought. I also thought butter would be ordered more frequently. In a larger household, it seems like a refrigerator staple that could run out quickly. Perhaps butter (and oils and vinegars) last longer and require less reorders.
+
+__Showing the 3 most popular items in 3 aisles:__
 
 ```{r}
 baking <-
@@ -111,7 +136,10 @@ full_join(baking, dog_food) %>%
   knitr::kable()
 ```
 
-Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+I find it interesting that light brown sugar was ordered more than cane sugar, since I think it's more common for baking recipes to call for cane sugar. Perhaps people already have large quantities of cane sugar at home but prefer to buy smaller packs of brown sugar and reorder when needed. It makes sense to me that the top items from the dog food aisle are treats and foods. I find it interesting that the most frequently ordered packaged vegetable or fruit is a vegetable. Perhaps this shows that spinach is a very popular packaged vegetable, while people may have a wider variety of preferences when it comes to which packaged fruits they like to order.
+
+
+__Showing the mean hour of  day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week:__
 
 ```{r}
 instacart %>% 
@@ -133,9 +161,9 @@ instacart %>%
       "Saturday" = `6`
       ) %>% 
   knitr::kable(digits = 1)
-
-  
 ```
+
+It seems that Coffee Ice Cream is ordered, on average, later in the day on each day of the week besides Friday. The website describing `instacart` finds that "ice cream and frozen pizza are the most frequently ordered products late at night." I think that fact could account for the higher mean of Coffee Ice Cream when compared to Pink Lady Apples.
 
 ## Problem 2
 
