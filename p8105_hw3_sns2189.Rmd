@@ -288,9 +288,9 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
 
 * `day` (day of the week, i.e., "Monday", "Tuesday", etc.),
 
-* `activity_*`(where * represents the minute of the day, ranging from 1-1440, and the value is the acitvity level at that minute), and
+* `activity_* `(where * represents the minute of the day, ranging from 1-1440, and the value is the acitvity level at that minute), and
 
-* `weekday_vs_weekend` (whether the day of the week is during the weekday or on the weekend)
+* `weekday_vs_weekend` (whether the day is during the week or on the weekend)
 
 
 __Create a table showing total activity per day__:
