@@ -167,7 +167,7 @@ It seems that Coffee Ice Cream is ordered, on average, later in the day on each 
 
 ## Problem 2
 
-Cleaning data
+__Tidying the data:__
 
 ```{r}
 brfss_smart2010_tidy <-
@@ -186,7 +186,7 @@ brfss_smart2010 %>%
   ) 
 ```
 
-In 2002, which states were observed at 7 or more locations? What about in 2010?
+__Showing which states were observed at 7 or more locations in 2002 and 2010:__
 
 ```{r}
 brfss_smart2010_tidy %>% 
@@ -194,29 +194,42 @@ brfss_smart2010_tidy %>%
   select(locationabbr, locationdesc) %>% 
   group_by(locationabbr) %>% 
   summarize(county_ct = n_distinct(locationdesc)) %>% 
-  filter(county_ct >= 7)
+  filter(county_ct >= 7) %>% 
+  knitr::kable(digits = 0)
+  
 
 brfss_smart2010_tidy %>% 
   filter(year == 2010) %>% 
   select(locationabbr, locationdesc) %>% 
   group_by(locationabbr) %>% 
   summarize(county_ct = n_distinct(locationdesc)) %>% 
-  filter(county_ct >= 7)
+  filter(county_ct >= 7) %>% 
+  knitr::kable(digits = 0)
   
 ```
 
-Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. Make a "spaghetti" plot of this average value over time within a state.
+We can see that 8 more states are observed at 7 or more locations in 2010. This makes sense because as the years go on, and as there is more funding for research, increasing the sample would be important to the researchers. Also, as more people got their own telephones, it was probably easier to contact more participants in a variety of counties by 2010. The mean number of counties included for each state also increases from 2002 to 2010.
+
+__Constructing a dataset and plot of mean `Excellent` responses in each state:__ 
 
 ```{r}
 brfss_smart2010_tidy %>% 
   filter(response == "Excellent") %>% 
   group_by(year, locationabbr) %>% 
   summarize(mean_data_value = mean(data_value, na.rm = TRUE)) %>% 
-  ggplot(aes(x = year, y = mean_data_value, group = locationabbr)) +
-  geom_line()
+  ggplot(aes(x = year, y = mean_data_value, color = locationabbr)) +
+  geom_line() +
+  labs(
+    title = "Mean proportion of 'Excellent' responses by state",
+    x = "Year",
+    y = "Mean proportion"
+  ) +
+  theme(legend.position = "none")
 ```
 
-Make a two-panel plot showing, for the years 2006 and 2010, distribution of `data_value` responses ("Poor" to "Excellent") among locations in NY State.
+From this plot, it seems that there isn't much of a general trend across states in terms of whether the number of "Excellent" responses go up and down. Instead we can look at specific lines towards the top or bottom of the plot to see which states are at the extremes. For example, the yellow line at the bottom represents West Virginia, while the purple line that contains the highest data point in 2004 is Washington, D.C.
+
+__Plotting distribution of responses in NY for 2006 and 2010:__
 
 ```{r}
 plot_2006 <-
@@ -225,7 +238,15 @@ plot_2006 <-
   group_by(response) %>% 
   summarize(response_mean = mean(data_value)) %>% 
   ggplot(aes(x = response, y = response_mean)) +
-  geom_col()
+  geom_col() + 
+  labs(
+    title = "NY Distribution 2006",
+    x = "Response",
+    y = "Mean proportion of responses"
+  ) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  ylim(c(0,35))
+
 
 plot_2010 <-
   brfss_smart2010_tidy %>% 
@@ -233,11 +254,19 @@ plot_2010 <-
   group_by(response) %>% 
   summarize(response_mean = mean(data_value)) %>% 
   ggplot(aes(x = response, y = response_mean)) +
-  geom_col()
+  geom_col() + 
+  labs(
+    title = "NY Distribution 2010",
+    x = "Response",
+    y = "Mean proportion of responses"
+  ) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  ylim(c(0,35))
 
-plot_2006 + plot_2010
-
+plot_2006 + plot_2010 
 ```
+
+These plots actually don't look extremely different, but we can see clearly that there were a larger proportion of "Very good" responses in 2010 when compared to 2006 in NY state. However, there are slightly more "Poor" responses too. It seems like people in 2010 were less likely to feel more neutral about their health with "Fair" and "Good" responses, and favored the slightly more extreme responses of "Poor" or "Very Good" when compared to respondents in 2006.
 
 ## Problem 3
 
