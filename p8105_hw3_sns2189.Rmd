@@ -270,7 +270,7 @@ These plots actually don't look extremely different, but we can see clearly that
 
 ## Problem 3
 
-Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+__Tidying the data:__
 
 ```{r}
 accel_df <- read_csv("./data/accel_data.csv") %>% 
@@ -282,7 +282,18 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
   )
 ```
 
-Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+`accel_df` is a dataset with `r nrow(accel_df)` rows and `r ncol(accel_df)` columns. Each row represents a single day, and columns show observations at each minute of the day, starting at midnight. Therefore the key variables that we use are
+
+* `day_id`(values from 1-35 that mark the day),
+
+* `day` (day of the week, i.e., "Monday", "Tuesday", etc.),
+
+* `activity_*`(where * represents the minute of the day, ranging from 1-1440, and the value is the acitvity level at that minute), and
+
+* `weekday_vs_weekend` (whether the day of the week is during the weekday or on the weekend)
+
+
+__Create a table showing total activity per day__:
 
 ```{r}
 accel_df %>% 
@@ -290,12 +301,24 @@ accel_df %>%
   mutate(activity_total = sum(c_across(activity_1:activity_1440))) %>% 
   select(day_id, day, weekday_vs_weekend, activity_total) %>% 
   knitr::kable(digits = 1)
+
 ```
 
-It seems that 
+I find it a bit difficult to notice any trends from just looking at the table. We can quickly plot this table to observe trends.
+
+```{r}
+accel_df %>% 
+  rowwise(day_id) %>% 
+  mutate(activity_total = sum(c_across(activity_1:activity_1440))) %>% 
+  select(day_id, day, weekday_vs_weekend, activity_total) %>% 
+  ggplot(aes(x = day_id, y = activity_total)) +
+  geom_line()
+```
+
+From this plot, it looks like activity level fluctuates from day to day. A lower-energy day is often followed by a higher-energy day and vice-versa. It's also important to notice that on days 24 and 31, there is only 1 "activity count" per minute, leading to a sum of 1440. These data are probably not reliable and may be missing.
 
 
-Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+__Plotting the 24-hour activity time courses for each day:__
 
 ```{r}
 accel_df %>% 
@@ -318,3 +341,4 @@ accel_df %>%
   )
 ```
 
+We can tell from this plot that activity levels are low in the early morning hours, which makes sense because the subject is probably sleeping and not very active. It looks like the subject may wake up around 6am and fall asleep around 10pm in general. There are often activity peaks around 10-1pm, from 4-6pm, and from 8-10pm. It seems like Wednesdays may be lower energy days for the subject in general. Also, Fridays seem like higher energy days. It may be easier to pick out more specific trends if we focus on a subset of days, or if we split the graph into multiple panels.
